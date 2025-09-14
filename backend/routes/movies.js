@@ -7,7 +7,7 @@ const Movie = require('../models/Movie');
 const Review = require('../models/Review');
 const User = require('../models/User');
 
-// ✅ GET /api/movies?search=&genre=&year=&page=1&limit=12&minRating=0&sort=avgRating&order=DESC
+//  GET /api/movies?search=&genre=&year=&page=1&limit=12&minRating=0&sort=avgRating&order=DESC
 router.get('/', async (req, res) => {
   try {
     const {
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
       where.title = { [Op.iLike]: `%${search}%` };
     }
 
-    // 🎭 Genre filter (supports single or multiple, comma-separated)
+    //  Genre filter (supports single or multiple, comma-separated)
     if (genre) {
       const genres = Array.isArray(genre) ? genre : genre.split(',');
       where.genre = { [Op.overlap]: genres }; // requires ARRAY column in Postgres
@@ -70,7 +70,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ GET /api/movies/:id → movie details + reviews
+//  GET /api/movies/:id → movie details + reviews
 router.get('/:id', async (req, res) => {
   try {
     const movie = await Movie.findByPk(req.params.id);

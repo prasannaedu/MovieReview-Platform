@@ -6,7 +6,7 @@ const Movie = require("../models/Movie");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
 
-// ✅ GET all reviews for a movie
+//  GET all reviews for a movie
 router.get("/", async (req, res) => {
   try {
     const reviews = await Review.findAll({
@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ✅ POST a new review
+//  POST a new review
 router.post("/", auth, async (req, res) => {
   try {
     const { rating, comment } = req.body;

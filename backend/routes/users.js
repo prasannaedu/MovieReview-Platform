@@ -6,7 +6,7 @@ const Review = require("../models/Review");
 const Watchlist = require("../models/Watchlist");
 const auth = require("../middleware/auth");
 
-// ✅ GET user profile (with reviews + watchlist)
+//  GET user profile (with reviews + watchlist)
 router.get("/:id", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) {
@@ -56,7 +56,7 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
-// ✅ PUT update profile
+
 router.put("/:id", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
@@ -72,7 +72,7 @@ router.put("/:id", auth, async (req, res) => {
   }
 });
 
-// ✅ GET user watchlist
+
 router.get("/:id/watchlist", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
@@ -88,7 +88,7 @@ router.get("/:id/watchlist", auth, async (req, res) => {
   }
 });
 
-// ✅ POST add movie to watchlist
+
 router.post("/:id/watchlist", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
@@ -111,7 +111,7 @@ router.post("/:id/watchlist", auth, async (req, res) => {
   }
 });
 
-// ✅ DELETE remove movie from watchlist
+
 router.delete("/:id/watchlist/:movieId", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
