@@ -27,6 +27,7 @@ export default function Navbar() {
         <Link to="/movies" style={{ color: "#fff" }}>Movies</Link>
         {user ? (
           <>
+            <Link to="/watchlist" style={{ color: "#fff" }}>Watchlist</Link>
             <Link to="/profile" style={{ color: "#fff" }}>Profile</Link>
             <button onClick={handleLogout} style={{ background: "red", color: "#fff", border: "none", padding: "6px 12px", cursor: "pointer" }}>
               Logout

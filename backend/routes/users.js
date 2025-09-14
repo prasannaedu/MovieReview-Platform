@@ -1,12 +1,14 @@
+// backend/routes/users.js
 const express = require("express");
+const { body, validationResult } = require("express-validator");
 const router = express.Router();
+
 const User = require("../models/User");
 const Movie = require("../models/Movie");
 const Review = require("../models/Review");
-const Watchlist = require("../models/Watchlist");
 const auth = require("../middleware/auth");
 
-//  GET user profile (with reviews + watchlist)
+// ✅ GET user profile (with reviews + watchlist)
 router.get("/:id", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) {
@@ -21,7 +23,7 @@ router.get("/:id", auth, async (req, res) => {
           include: [{ model: Movie, attributes: ["id", "title", "posterUrl"] }],
         },
         {
-          model: Movie, // through watchlist
+          model: Movie,
           as: "Movies",
           through: { attributes: [] },
           attributes: ["id", "title", "posterUrl"],
@@ -56,23 +58,36 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
+// ✅ PUT update profile
+router.put(
+  "/:id",
+  auth,
+  [
+    body("username").optional().isLength({ min: 2 }).withMessage("Username too short"),
+    body("email").optional().isEmail().withMessage("Valid email required"),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-router.put("/:id", auth, async (req, res) => {
-  try {
-    if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
+    try {
+      if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
 
-    await User.update(req.body, { where: { id: req.params.id } });
-    const updatedUser = await User.findByPk(req.params.id, {
-      attributes: { exclude: ["password"] },
-    });
-    res.json(updatedUser);
-  } catch (e) {
-    console.error(e);
-    res.status(500).send("Server error");
+      await User.update(req.body, { where: { id: req.params.id } });
+      const updatedUser = await User.findByPk(req.params.id, {
+        attributes: { exclude: ["password"] },
+      });
+      res.json(updatedUser);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send("Server error");
+    }
   }
-});
+);
 
-
+// ✅ GET user watchlist
 router.get("/:id/watchlist", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
@@ -81,37 +96,47 @@ router.get("/:id/watchlist", auth, async (req, res) => {
       include: [{ model: Movie, as: "Movies", through: { attributes: [] } }],
     });
 
-    res.json({ watchlist: user ? user.Movies : [] });
-  } catch (e) {
-    console.error(e);
-    res.status(500).send("Server error");
-  }
-});
-
-
-router.post("/:id/watchlist", auth, async (req, res) => {
-  try {
-    if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
-
-    const { movieId } = req.body;
-    if (!movieId) return res.status(400).json({ msg: "Movie ID is required" });
-
-    const user = await User.findByPk(req.params.id);
-    const movie = await Movie.findByPk(movieId);
-
     if (!user) return res.status(404).json({ msg: "User not found" });
-    if (!movie) return res.status(404).json({ msg: "Movie not found" });
 
-    await user.addMovie(movie);
-    const updatedWatchlist = await user.getMovies();
-    res.json({ msg: "Added to watchlist", watchlist: updatedWatchlist });
+    res.json({ watchlist: user.Movies });
   } catch (e) {
     console.error(e);
     res.status(500).send("Server error");
   }
 });
 
+// ✅ POST add movie to watchlist
+router.post(
+  "/:id/watchlist",
+  auth,
+  [body("movieId").isInt().withMessage("Movie ID must be an integer")],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
+    try {
+      if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });
+
+      const { movieId } = req.body;
+      const user = await User.findByPk(req.params.id);
+      const movie = await Movie.findByPk(movieId);
+
+      if (!user) return res.status(404).json({ msg: "User not found" });
+      if (!movie) return res.status(404).json({ msg: "Movie not found" });
+
+      await user.addMovie(movie);
+      const updatedWatchlist = await user.getMovies();
+      res.json({ msg: "Added to watchlist", watchlist: updatedWatchlist });
+    } catch (e) {
+      console.error(e);
+      res.status(500).send("Server error");
+    }
+  }
+);
+
+// ✅ DELETE remove movie from watchlist
 router.delete("/:id/watchlist/:movieId", auth, async (req, res) => {
   try {
     if (req.user.id != req.params.id) return res.status(403).json({ msg: "Forbidden" });

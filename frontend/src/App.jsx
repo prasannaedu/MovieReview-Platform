@@ -1,52 +1,59 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+// frontend/src/App.jsx
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Movies from "./pages/Movies";
 import MoviePage from "./pages/MoviePage";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import Watchlist from "./pages/Watchlist";
 import Navbar from "./components/Navbar";
+import { AuthContext } from "./context/AuthContext";
+import { useContext } from "react";
+
+// ✅ ProtectedRoute wrapper
+function ProtectedRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  if (!user) {
+    return <p style={{ padding: 20 }}>Please log in to view this page.</p>;
+  }
+  return children;
+}
 
 function App() {
-  const [user, setUser] = useState(null);
+  const { login } = useContext(AuthContext);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Validate token (optional, for now assume it's valid)
-      setUser({ id: localStorage.getItem("userId"), isAdmin: localStorage.getItem("isAdmin") === "true" });
-    }
-  }, []);
-
-  const handleLogin = (token, userId, isAdmin) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("userId", userId);
-    localStorage.setItem("isAdmin", isAdmin);
-    setUser({ id: userId, isAdmin });
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("isAdmin");
-    setUser(null);
-  };
-
-  const ProtectedRoute = ({ children }) => {
-    if (!user) return <Navigate to="/login" replace />;
-    return children;
+  const handleLogin = (userData, token) => {
+    login(userData, token); // update context when user logs in
   };
 
   return (
     <Router>
       <div>
-        <Navbar user={user} onLogout={handleLogout} />
+        {/* Global Navbar */}
+        <Navbar />
+
+        {/* Routes */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/movies" element={<Movies />} />
-          <Route path="/movies/:id" element={<ProtectedRoute><MoviePage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/movies/:id" element={<MoviePage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/watchlist"
+            element={
+              <ProtectedRoute>
+                <Watchlist />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register onLogin={handleLogin} />} />
         </Routes>

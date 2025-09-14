@@ -5,7 +5,7 @@ import API from "../api";
 import { Link } from "react-router-dom";
 
 export default function Profile() {
-  const { user } = useContext(AuthContext);
+  const { user, token } = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -19,7 +19,9 @@ export default function Profile() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await API.get(`/users/${user.id}`);
+        const res = await API.get(`/users/${user.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setProfile(res.data);
       } catch (err) {
         console.error("Profile fetch error:", err.response?.data || err.message);
@@ -29,14 +31,15 @@ export default function Profile() {
       }
     };
     fetchProfile();
-  }, [user]);
+  }, [user, token]);
 
   const removeFromWatchlist = async (movieId) => {
     if (!user) return;
     setWlLoading(true);
     try {
-      await API.delete(`/users/${user.id}/watchlist/${movieId}`);
-      // update local state
+      await API.delete(`/users/${user.id}/watchlist/${movieId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setProfile((p) => ({
         ...p,
         watchlist: (p.watchlist || []).filter((m) => String(m.movieId) !== String(movieId)),
@@ -54,49 +57,81 @@ export default function Profile() {
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
-    <div style={{ padding: 20, maxWidth: 900 }}>
+    <div style={{ padding: 20, maxWidth: 1000, margin: "0 auto" }}>
       <h2>{profile?.username}'s Profile</h2>
       <p>Email: {profile?.email}</p>
       <p>Joined: {new Date(profile?.createdAt).toLocaleDateString()}</p>
 
       {/* Reviews Section */}
-      <section style={{ marginTop: 20 }}>
+      <section style={{ marginTop: 30 }}>
         <h3>Your Reviews</h3>
         {profile?.reviews?.length > 0 ? (
-          profile.reviews.map((r) => (
-            <div key={r.id} style={{ marginBottom: 12 }}>
-              <Link to={`/movies/${r.movieId}`}><strong>{r.movieTitle}</strong></Link>
-              <p>Rating: {r.rating} ★</p>
-              <p>{r.comment}</p>
-              <small>{new Date(r.createdAt).toLocaleString()}</small>
-            </div>
-          ))
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+            {profile.reviews.map((r) => (
+              <div
+                key={r.id}
+                style={{
+                  width: 250,
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  padding: 12,
+                  background: "#fafafa",
+                }}
+              >
+                <Link to={`/movies/${r.movieId}`} style={{ textDecoration: "none", color: "#000" }}>
+                  <strong>{r.movieTitle}</strong>
+                </Link>
+                <p>⭐ {r.rating}/5</p>
+                <p style={{ fontStyle: "italic" }}>{r.comment}</p>
+                <small>{new Date(r.createdAt).toLocaleString()}</small>
+              </div>
+            ))}
+          </div>
         ) : (
           <p>No reviews yet.</p>
         )}
       </section>
 
       {/* Watchlist Section */}
-      <section style={{ marginTop: 20 }}>
+      <section style={{ marginTop: 40 }}>
         <h3>Your Watchlist</h3>
         {profile?.watchlist?.length > 0 ? (
-          profile.watchlist.map((m) => (
-            <div key={m.movieId} style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
-              {m.posterUrl ? (
-                <img src={m.posterUrl} alt={m.movieTitle} width="80" />
-              ) : (
-                <div style={{ width: 80, height: 120, background: "#eee" }} />
-              )}
-              <div style={{ flex: 1 }}>
-                <Link to={`/movies/${m.movieId}`}><strong>{m.movieTitle}</strong></Link>
-                <div>
-                  <button onClick={() => removeFromWatchlist(m.movieId)} disabled={wlLoading}>
-                    {wlLoading ? "Removing..." : "Remove"}
-                  </button>
-                </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+            {profile.watchlist.map((m) => (
+              <div
+                key={m.movieId}
+                style={{ width: 200, textAlign: "center" }}
+              >
+                <Link to={`/movies/${m.movieId}`} style={{ textDecoration: "none", color: "#000" }}>
+                  {m.posterUrl ? (
+                    <img
+                      src={m.posterUrl}
+                      alt={m.movieTitle}
+                      style={{ width: "100%", borderRadius: 8 }}
+                    />
+                  ) : (
+                    <div style={{ width: "100%", height: 280, background: "#eee", borderRadius: 8 }} />
+                  )}
+                  <p><strong>{m.movieTitle}</strong></p>
+                </Link>
+                <button
+                  onClick={() => removeFromWatchlist(m.movieId)}
+                  disabled={wlLoading}
+                  style={{
+                    marginTop: 6,
+                    background: "red",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 10px",
+                    borderRadius: 4,
+                    cursor: "pointer",
+                  }}
+                >
+                  {wlLoading ? "Removing..." : "Remove"}
+                </button>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         ) : (
           <p>Your watchlist is empty.</p>
         )}
