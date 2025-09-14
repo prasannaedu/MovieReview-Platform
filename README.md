@@ -1,15 +1,24 @@
 # Movie Review Platform
 
 ## Overview
-A full-stack movie review platform built with React, Node.js, Express, and PostgreSQL. This project allows users to browse movies, submit reviews, manage watchlists, and view profiles, with authentication and TMDB integration for posters.
+A full-stack movie review platform built with React, Node.js, Express, and PostgreSQL. This project allows users to browse movies, submit reviews, manage watchlists, and view profiles, with authentication and TMDB integration for posters, trailers, and cast details.
 
 ## Features
-- Browse movies with search, filters (genre, year, rating), and pagination.
-- View detailed movie pages with reviews and watchlist options.
-- User authentication (register, login, logout).
-- Profile page to view reviews and watchlist.
-- Admin functionality for adding movies (in progress).
-- TMDB API integration for movie posters.
+- **Movie Browsing**: Search movies with filters (genre, year, rating) and pagination, displaying posters from TMDB.
+- **Movie Details**: View detailed pages with synopsis, average rating, reviews, watchlist options, trailers, and cast information.
+- **Review System**: Authenticated users can submit ratings (1-5) and comments, with real-time average rating updates.
+- **User Authentication**: Register, login, and logout functionality with JWT-based authentication.
+- **Profile Management**: View and edit user profiles, including reviews and watchlist.
+- **Watchlist Management**: Add or remove movies from a dedicated watchlist page.
+- **Admin Functionality**: Add new movies (in progress, admin-only).
+- **TMDB Integration**: Fetch posters, trailers, and cast using the TMDB API.
+
+## Tech Stack
+- **Frontend**: React (Vite), React Router, Context API
+- **Backend**: Node.js, Express, Sequelize ORM
+- **Database**: PostgreSQL
+- **Authentication**: JWT, bcrypt for password hashing
+- **APIs**: TMDB for movie posters, trailers, and cast
 
 ## Setup
 
@@ -27,53 +36,37 @@ A full-stack movie review platform built with React, Node.js, Express, and Postg
    ```
 
 ### Backend Setup
-
-Navigate to the backend/ directory:
 ```bash
 cd backend
-```
-
-Install dependencies:
-```bash
 npm install
 ```
 
-Create a `.env` file in backend/ with:
+Create a `.env` file in `backend/`:
 ```text
 PORT=5000
 JWT_SECRET=your-secure-secret-key
 DATABASE_URL=postgres://username:password@localhost:5432/moviedb
 ```
 
-Set up the database:
+Setup the database:
 ```bash
 npx sequelize-cli db:create
 npx sequelize-cli db:migrate
-```
-
-Seed data (movies + admin user):
-```bash
 node seed.js
 ```
 
-Start the server:
+Start the backend server:
 ```bash
 npm run dev
 ```
 
 ### Frontend Setup
-
-Navigate to the frontend/ directory:
 ```bash
 cd ../frontend
-```
-
-Install dependencies:
-```bash
 npm install
 ```
 
-Create a `.env` file in frontend/ with:
+Create a `.env` file in `frontend/`:
 ```text
 VITE_API_URL=http://localhost:5000/api
 VITE_TMDB_API_KEY=your-tmdb-api-key
@@ -86,34 +79,37 @@ npm run dev
 
 ## API Endpoints
 
-- `GET /api/movies` → List movies with pagination and filters.
-- `GET /api/movies/:id` → Get movie details.
-- `POST /api/movies/:id/reviews` → Submit a review (authenticated).
-- `GET /api/movies/:id/reviews` → Fetch reviews for a movie.
-- `POST /api/auth/register` → Register a new user.
-- `POST /api/auth/login` → Log in a user.
-- `GET /api/users/:id` → Fetch user profile with reviews + watchlist.
-- `PUT /api/users/:id` → Update user profile.
-- `GET /api/users/:id/watchlist` → Fetch user watchlist.
-- `POST /api/users/:id/watchlist` → Add to watchlist.
-- `DELETE /api/users/:id/watchlist/:movieId` → Remove from watchlist.
+### Movies
+- `GET /api/movies` → List movies with pagination and filters
+- `GET /api/movies/:id` → Movie details
+- `POST /api/movies/:id/reviews` → Submit review (authenticated)
+- `GET /api/movies/:id/reviews` → Fetch reviews
+- `POST /api/movies` → Add new movie (admin-only, in progress)
+
+### Users
+- `POST /api/auth/register` → Register new user
+- `POST /api/auth/login` → Login
+- `GET /api/users/:id` → User profile with reviews & watchlist
+- `PUT /api/users/:id` → Update profile
+- `GET /api/users/:id/watchlist` → Fetch watchlist
+- `POST /api/users/:id/watchlist` → Add to watchlist
+- `DELETE /api/users/:id/watchlist/:movieId` → Remove from watchlist
 
 ## Notes & Design Decisions
+- PostgreSQL with Sequelize ORM for Users, Movies, Reviews, and Watchlist.
+- JWT authentication and bcrypt password hashing.
+- React frontend with Context API for auth state management.
+- Error boundaries on frontend and robust error handling on backend.
+- Environment variables used for sensitive configs.
+- TMDB API for posters, trailers, and cast details.
+- Pagination and filtering for scalability.
+- Admin routes partially implemented.
 
-- **Database**: Used PostgreSQL with Sequelize ORM for structured data and relationships (Users, Movies, Reviews, Watchlist).  
-- **Authentication**: Implemented with JWT (JSON Web Token). Passwords are hashed using bcrypt.  
-- **Frontend**: Built with React (Vite), React Router for navigation, and Context for auth state management.  
-- **Error Handling**: Implemented error boundaries on frontend and try/catch with proper status codes in backend.  
-- **Environment Variables**: All sensitive configs (DB URL, JWT secret, TMDB API key) are stored in `.env` and never pushed to Git.  
-- **Movie Posters**: Pulled from TMDB API.  
-- **Scalability**: Pagination included for movie listing. Filtering supported by genre, year, rating.  
-- **Security**: Routes secured with middleware (`auth.js`) and access checks (user can only update own profile, watchlist).  
-- **Future Improvements**:  
-  - Add an Admin Dashboard for managing movies/users.  
-  - Deploy the app on a service like Render/Heroku + Vercel/Netlify.  
-  - Enhance UI with Material-UI or Tailwind for better UX.  
-  - Recommendation system (based on ratings) and social features (following users).  
+## Future Improvements
+- Complete Admin Dashboard for managing movies/users.
+- Deploy backend (Render/Heroku) and frontend (Vercel/Netlify).
+- Enhance UI with Tailwind or Material-UI.
+- Add recommendation system and social features (user following).
 
 ## Repository
-
 GitHub Repo: [MovieReview-Platform](https://github.com/prasannaedu/MovieReview-Platform)
